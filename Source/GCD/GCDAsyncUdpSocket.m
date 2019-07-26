@@ -1161,8 +1161,9 @@ enum GCDAsyncUdpSocketConfig
 		// We should still use dispatch_async since this method is expected to be asynchronous
 		
 		dispatch_async(socketQueue, ^{ @autoreleasepool {
-			
-			completionBlock(nil, error);
+            if (completionBlock) {
+                completionBlock(nil, error);
+            }
 		}});
 		
 		return;
@@ -1258,8 +1259,9 @@ enum GCDAsyncUdpSocketConfig
 		}
 		
         dispatch_async(self->socketQueue, ^{ @autoreleasepool {
-			
-			completionBlock(addresses, error);
+            if (completionBlock) {
+                completionBlock(addresses, error);
+            }
 		}});
 		
 	}});
@@ -5227,10 +5229,14 @@ Failed:
 
 - (void)performBlock:(dispatch_block_t)block
 {
-	if (dispatch_get_specific(IsOnSocketQueueOrTargetQueueKey))
-		block();
-	else
-		dispatch_sync(socketQueue, block);
+    if (dispatch_get_specific(IsOnSocketQueueOrTargetQueueKey)) {
+        if (block) {
+            block();
+        }
+    }
+    else {
+        dispatch_sync(socketQueue, block);
+    }
 }
 
 - (int)socketFD

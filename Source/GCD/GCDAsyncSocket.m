@@ -2314,11 +2314,11 @@ enum GCDAsyncSocketConfig
 		dispatch_async(globalConcurrentQueue, ^{ @autoreleasepool {
 		#pragma clang diagnostic push
 		#pragma clang diagnostic warning "-Wimplicit-retain-self"
-			
+            __strong GCDAsyncSocket *strongSelf = weakSelf;
+
 			NSError *lookupErr = nil;
-			NSMutableArray *addresses = [[self class] lookupHost:hostCpy port:port error:&lookupErr];
+			NSMutableArray *addresses = [GCDAsyncSocket lookupHost:hostCpy port:port error:&lookupErr];
 			
-			__strong GCDAsyncSocket *strongSelf = weakSelf;
 			if (strongSelf == nil) return_from_block;
 			
 			if (lookupErr)
@@ -2335,11 +2335,11 @@ enum GCDAsyncSocketConfig
 				
 				for (NSData *address in addresses)
 				{
-					if (!address4 && [[self class] isIPv4Address:address])
+					if (!address4 && [GCDAsyncSocket isIPv4Address:address])
 					{
 						address4 = address;
 					}
-					else if (!address6 && [[self class] isIPv6Address:address])
+					else if (!address6 && [GCDAsyncSocket isIPv6Address:address])
 					{
 						address6 = address;
 					}
@@ -8029,10 +8029,14 @@ static void CFWriteStreamCallback (CFWriteStreamRef stream, CFStreamEventType ty
 **/
 - (void)performBlock:(dispatch_block_t)block
 {
-	if (dispatch_get_specific(IsOnSocketQueueOrTargetQueueKey))
-		block();
-	else
-		dispatch_sync(socketQueue, block);
+    if (dispatch_get_specific(IsOnSocketQueueOrTargetQueueKey)) {
+        if (block) {
+            block();block();
+        }
+    }
+    else {
+        dispatch_sync(socketQueue, block);
+    }
 }
 
 /**
