@@ -2725,7 +2725,7 @@ enum GCDAsyncSocketConfig
             
             if (result == 0)
             {
-                [self closeUnusedSocket:socketFD];
+                [strongSelf closeUnusedSocket:socketFD];
                 
                 [strongSelf didConnect:aStateIndex];
             }
